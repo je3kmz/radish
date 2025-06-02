@@ -217,18 +217,9 @@ get_hls_uri_radiko() {
   if [ "${radiko_login_status}" = "1" ]; then
     areafree="1"
   fi
-  urilist=$(curl --silent "https://radiko.jp/v2/station/stream_smh_multi/${station_id}.xml" | xmllint --xpath "/urls/url[@areafree='${areafree}']/playlist_create_url/text()" - 2> /dev/null)
-  for x in `echo $urilist`
-  do
-    ffprobe -v quiet -headers "X-Radiko-Authtoken: ${authtoken}" $x
-    if test $0
-      then
-      echo $x
-      return 0  
-    fi
-    echo
-  done
-  return 1
+
+  uri=$(curl --silent "https://radiko.jp/v3/station/stream/pc_html5/${station_id}.xml" | xmllint --xpath "/urls/url[@timefree='0' and @areafree='${areafree}'][playlist_create_url[not(contains(text(),'_definst_'))]][2]/playlist_create_url/text()" - | sed 's/\&amp;/\&/g' 2> /dev/null)
+  echo "${uri}?station_id=${station_id}&l=15&type=c&lsid="
 }
 
 #######################################
